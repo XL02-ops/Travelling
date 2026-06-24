@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🇪🇸 巴塞罗那 2026 · 交互式旅行思维导图</title>
+<style>
+  :root{
+    --bg:#0b1220;
+    --bg2:#111c30;
+    --panel:#16233b;
+    --panel2:#1d2d49;
+    --line:#94a3b8;
+    --line-soft:#475569;
+    --text:#e8eef7;
+    --text-dim:#9fb0c7;
+    --gold:#fbbf24;
+    --terra:#f97316;
+    --ocean:#38bdf8;
+    --sage:#34d399;
+    --violet:#a78bfa;
+    --rose:#fb7185;
+    --d1:#38bdf8;   /* Day1 海洋蓝 */
+    --d2:#fbbf24;   /* Day2 高迪金 */
+    --d3:#a78bfa;   /* Day3 圣家紫 */
+    --d4:#34d399;   /* Day4 蒙锥克绿 */
+    --prep:#fb7185; /* 准备 玫红 */
+    --gift:#f97316; /* 伴手礼 橙 */
+    --mem:#f472b6;  /* 记忆 粉 */
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:"PingFang SC","Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(56,189,248,.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(251,191,36,.08), transparent 60%),
+      linear-gradient(160deg,#0b1220,#111c30 60%,#0b1220);
+    color:var(--text);
+    overflow-x:hidden;
+  }
+
+  /* ─── Hero ─── */
+  .hero{
+    position:relative;
+    padding:54px 24px 28px;
+    text-align:center;
+    border-bottom:1px solid rgba(255,255,255,.06);
+  }
+  .hero .flag{font-size:42px;letter-spacing:6px}
+  .hero h1{
+    font-size:clamp(28px,4vw,46px);
+    font-weight:800;
+    margin:8px 0 6px;
+    background:linear-gradient(90deg,#fbbf24,#f97316,#fb7185);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero .sub{color:var(--text-dim);font-size:15px;letter-spacing:.5px}
+  .hero .tags{
+    margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
+  }
+  .tag{
+    font-size:12px;padding:5px 12px;border-radius:999px;
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+    color:var(--text-dim);
+  }
+
+  /* ─── Toolbar ─── */
+  .toolbar{
+    position:sticky;top:0;z-index:30;
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:12px 24px;
+    background:rgba(11,18,32,.82);backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(255,255,255,.06);
+  }
+  .toolbar .title{font-weight:700;font-size:14px;color:var(--text-dim);margin-right:auto}
+  .btn{
+    cursor:pointer;font-size:13px;padding:7px 14px;border-radius:8px;
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+    color:var(--text);transition:.18s;user-select:none;
+  }
+  .btn:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+  .btn.primary{background:linear-gradient(90deg,#f97316,#fbbf24);border:none;color:#1a1208;font-weight:600}
+  .legend{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}
+
+  /* ─── Canvas ─── */
+  #canvas{
+    position:relative;
+    overflow:auto;
+    padding:40px 60px 80px;
+    min-height:calc(100vh - 200px);
+  }
+  #canvas::-webkit-scrollbar{height:10px;width:10px}
+  #canvas::-webkit-scrollbar-thumb{background:#334155;border-radius:6px}
+  #canvas::-webkit-scrollbar-track{background:transparent}
+
+  .tree{position:relative;display:inline-block;min-width:100%}
+  .tree svg.connectors{
+    position:absolute;top:0;left:0;pointer-events:none;z-index:0;
+    overflow:visible;
+  }
+
+  /* ─── Nodes ─── */
+  .node{
+    position:relative;z-index:1;
+    display:inline-flex;align-items:center;gap:8px;
+    padding:10px 16px;border-radius:10px;
+    background:var(--panel);border:1.5px solid rgba(255,255,255,.1);
+    color:var(--text);font-size:14px;font-weight:600;
+    cursor:pointer;transition:.18s;white-space:nowrap;
+    box-shadow:0 4px 14px rgba(0,0,0,.25);
+  }
+  .node:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.4)}
+  .node .chev{font-size:10px;color:var(--text-dim);transition:.2s}
+  .node.collapsed .chev{transform:rotate(-90deg)}
+  .node .badge{
+    font-size:10px;padding:2px 7px;border-radius:6px;
+    background:rgba(255,255,255,.12);color:var(--text-dim);font-weight:500;
+  }
+
+  /* root */
+  .node.root{
+    font-size:18px;padding:18px 28px;
+    background:linear-gradient(135deg,#7c3aed,#a78bfa);
+    border:none;color:#fff;
+    box-shadow:0 10px 30px rgba(124,58,237,.4);
+  }
+  .node.root .sub{display:block;font-size:12px;font-weight:400;opacity:.85;margin-top:3px}
+
+  /* level1 branches */
+  .node.l1{font-size:15px;padding:12px 20px}
+  .node.l1[data-c="d1"]{border-color:var(--d1);color:#bae6fd}
+  .node.l1[data-c="d2"]{border-color:var(--d2);color:#fde68a}
+  .node.l1[data-c="d3"]{border-color:var(--d3);color:#ddd6fe}
+  .node.l1[data-c="d4"]{border-color:var(--d4);color:#a7f3d0}
+  .node.l1[data-c="prep"]{border-color:var(--prep);color:#fecdd3}
+  .node.l1[data-c="gift"]{border-color:var(--gift);color:#fed7aa}
+  .node.l1[data-c="mem"]{border-color:var(--mem);color:#fbcfe8}
+
+  /* level2 (time/place) */
+  .node.l2{
+    font-size:13px;font-weight:500;padding:8px 14px;
+    background:var(--panel2);
+  }
+  .node.l2 .time{
+    font-size:11px;color:var(--gold);font-weight:700;
+    background:rgba(251,191,36,.12);padding:2px 6px;border-radius:5px;margin-right:4px;
+  }
+
+  /* level3 (highlights) */
+  .node.l3{
+    font-size:12px;font-weight:400;padding:6px 12px;
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+    color:var(--text-dim);
+  }
+  .node.l3:hover{color:var(--text);background:rgba(255,255,255,.08)}
+
+  /* layout helpers */
+  .row{display:flex;align-items:flex-start;gap:0}
+  .col{display:flex;flex-direction:column;gap:10px}
+  .children-wrap{display:flex;align-items:flex-start}
+  .root-wrap{display:flex;align-items:center;justify-content:center;min-width:100%;padding-bottom:30px}
+  .root-wrap .root-col{display:flex;flex-direction:column;align-items:center;gap:30px}
+  .sides{display:flex;gap:80px;align-items:flex-start;justify-content:center}
+  .side{display:flex;flex-direction:column;gap:24px}
+  .branch{display:flex;align-items:flex-start;gap:0}
+  .branch.right{flex-direction:row}
+  .branch.left{flex-direction:row-reverse}
+  .branch .children{
+    display:flex;flex-direction:column;gap:8px;
+    margin:0 50px;
+  }
+  .branch.left .children{align-items:flex-end}
+  .branch.right .children{align-items:flex-start}
+  .sub-children{
+    display:flex;flex-direction:column;gap:6px;
+    margin:0 40px;
+  }
+  .branch.left .sub-children{align-items:flex-end}
+  .branch.right .sub-children{align-items:flex-start}
+  .node-group{display:flex;align-items:flex-start}
+  .branch.left .node-group{flex-direction:row-reverse}
+  .branch.right .node-group{flex-direction:row}
+
+  /* ─── Detail Panel ─── */
+  .overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.55);
+    opacity:0;pointer-events:none;transition:.25s;z-index:40;
+  }
+  .overlay.show{opacity:1;pointer-events:auto}
+  .panel{
+    position:fixed;top:0;right:0;height:100vh;width:min(460px,92vw);
+    background:linear-gradient(180deg,#16233b,#0f1a2e);
+    border-left:1px solid rgba(255,255,255,.1);
+    transform:translateX(100%);transition:.3s cubic-bezier(.4,0,.2,1);
+    z-index:50;display:flex;flex-direction:column;
+    box-shadow:-10px 0 40px rgba(0,0,0,.5);
+  }
+  .panel.show{transform:translateX(0)}
+  .panel-head{
+    padding:22px 24px 16px;border-bottom:1px solid rgba(255,255,255,.08);
+    position:relative;
+  }
+  .panel-head .close{
+    position:absolute;top:18px;right:18px;cursor:pointer;
+    width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,.06);font-size:16px;color:var(--text-dim);
+  }
+  .panel-head .close:hover{background:rgba(255,255,255,.12);color:var(--text)}
+  .panel-head .eyebrow{font-size:11px;color:var(--gold);letter-spacing:1px;text-transform:uppercase;font-weight:700}
+  .panel-head h3{font-size:22px;margin:6px 0 4px;font-weight:800}
+  .panel-head .meta{font-size:13px;color:var(--text-dim)}
+  .panel-body{padding:20px 24px 40px;overflow-y:auto;flex:1}
+  .panel-body::-webkit-scrollbar{width:6px}
+  .panel-body::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}
+  .panel-body h4{font-size:13px;color:var(--gold);margin:18px 0 8px;font-weight:700;letter-spacing:.5px}
+  .panel-body h4:first-child{margin-top:0}
+  .panel-body p{font-size:14px;line-height:1.7;color:var(--text);margin-bottom:8px}
+  .panel-body ul{list-style:none;padding:0}
+  .panel-body li{
+    font-size:13.5px;line-height:1.7;color:var(--text-dim);
+    padding:5px 0 5px 18px;position:relative;
+  }
+  .panel-body li::before{
+    content:"";position:absolute;left:4px;top:13px;
+    width:5px;height:5px;border-radius:50%;background:var(--gold);
+  }
+  .panel-body .route{
+    background:rgba(255,255,255,.04);border-radius:10px;padding:14px 16px;margin:8px 0;
+  }
+  .panel-body .route-step{
+    font-size:13px;padding:4px 0;color:var(--text);display:flex;align-items:center;gap:8px;
+  }
+  .panel-body .route-arrow{color:var(--gold);font-size:11px}
+  .panel-body .tip{
+    background:rgba(251,191,36,.08);border-left:3px solid var(--gold);
+    padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;
+    font-size:13px;color:#fde68a;line-height:1.6;
+  }
+  .panel-body .must{
+    background:rgba(52,211,153,.08);border-left:3px solid var(--sage);
+    padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;
+    font-size:13px;color:#a7f3d0;line-height:1.6;
+  }
+
+  /* ─── Footer ─── */
+  .footer{
+    text-align:center;padding:30px 24px;color:var(--text-dim);font-size:12px;
+    border-top:1px solid rgba(255,255,255,.06);
+  }
+
+  /* responsive */
+  @media(max-width:768px){
+    .sides{flex-direction:column;gap:40px}
+    .branch.left,.branch.right{flex-direction:column;align-items:center}
+    .branch .children,.branch.left .children,.branch.right .children{align-items:center;margin:20px 0}
+    .branch.left .sub-children,.branch.right .sub-children{align-items:center}
+    #canvas{padding:24px 16px 60px}
+  }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="flag">🇪🇸</div>
+  <h1>巴塞罗那 4天3晚深度旅行</h1>
+  <div class="sub">2026/7/9（09:25抵达）— 2026/7/12晚 或 7/13早离开 · 交互式思维导图</div>
+  <div class="tags">
+    <span class="tag">城市文化</span>
+    <span class="tag">建筑朝圣</span>
+    <span class="tag">街区漫步</span>
+    <span class="tag">摄影记录</span>
+    <span class="tag">精致伴手礼</span>
+    <span class="tag">在地生活</span>
+  </div>
+</section>
+
+<div class="toolbar">
+  <span class="title">🧭 交互式旅行图谱</span>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--prep)"></span>出发准备</span>
+    <span><span class="dot" style="background:var(--d1)"></span>Day1</span>
+    <span><span class="dot" style="background:var(--d2)"></span>Day2</span>
+    <span><span class="dot" style="background:var(--d3)"></span>Day3</span>
+    <span><span class="dot" style="background:var(--d4)"></span>Day4</span>
+    <span><span class="dot" style="background:var(--gift)"></span>伴手礼</span>
+    <span><span class="dot" style="background:var(--mem)"></span>心动记忆</span>
+  </div>
+  <span style="flex:1"></span>
+  <span class="btn" id="expandAll">全部展开</span>
+  <span class="btn" id="collapseAll">全部折叠</span>
+  <span class="btn primary" id="resetView">重置视图</span>
+</div>
+
+<div id="canvas">
+  <div class="tree" id="tree"></div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<aside class="panel" id="panel">
+  <div class="panel-head">
+    <span class="close" id="closePanel">✕</span>
+    <div class="eyebrow" id="pEyebrow"></div>
+    <h3 id="pTitle"></h3>
+    <div class="meta" id="pMeta"></div>
+  </div>
+  <div class="panel-body" id="pBody"></div>
+</aside>
+
+<div class="footer">
+  Designed for Xiao Lei & Mentor · Barcelona Summer 2026 · 点击节点展开/折叠 · 点击地点查看详情
+</div>
+
+<script>
+/* ═══════════════ DATA ═══════════════ */
+const DATA = {
+  root: { label:"巴塞罗那 2026", sub:"4天3晚深度之旅" },
+  left: [
+    {
+      id:"prep", c:"prep", label:"📋 出发前准备",
+      children:[
+        {
+          label:"必须提前预约", time:"出发前1个月",
+          detail:{
+            eyebrow:"出发准备 · 预约",
+            title:"必须提前预约的景点",
+            meta:"建议出发前1个月完成预订",
+            sections:[
+              {h:"预约清单", list:[
+                "Sagrada Família 圣家堂 — 7月11日 11:00",
+                "Park Güell 奎尔公园 — 7月10日 08:30",
+                "Casa Batlló 巴特罗之家 — 7月10日 11:00",
+                "Palau de la Música 音乐宫 — 7月10日 17:30"
+              ]},
+              {h:"提示", tip:"这些景点现场基本买不到票，务必提前在官网预订，并选择对应时段。"}
+            ]
+          },
+          children:[
+            "圣家堂 7/11 11:00","奎尔公园 7/10 08:30","巴特罗之家 7/10 11:00","音乐宫 7/10 17:30"
+          ]
+        },
+        {
+          label:"交通建议", time:"全程",
+          detail:{
+            eyebrow:"出发准备 · 交通",
+            title:"交通卡与打车",
+            meta:"T-Casual + Uber/Bolt 组合",
+            sections:[
+              {h:"T-Casual 交通卡", list:["地铁","公交","市区火车"], p:"预计全程每人1张足够。"},
+              {h:"打车 App", list:["Uber","Bolt"], p:"巴塞罗那打车不贵。"},
+              {h:"建议打车的场景", must:"焦糖山 Bunkers del Carmel、Montjuïc 蒙锥克山 — 直接打车更省时间。"}
+            ]
+          },
+          children:["T-Casual 交通卡","Uber / Bolt","焦糖山·蒙锥克打车"]
+        }
+      ]
+    },
+    {
+      id:"d1", c:"d1", label:"Day 1 · 哥特区与地中海黄昏", date:"7月9日 周四",
+      children:[
+        {
+          label:"抵达机场", time:"09:25",
+          detail:{
+            eyebrow:"Day 1 · 09:25",
+            title:"Barcelona–El Prat 机场",
+            meta:"出关 + 取行李 约1小时",
+            sections:[
+              {h:"流程", list:["抵达 09:25","出关","取行李","预计 10:30 左右出航站楼"]}
+            ]
+          },
+          children:["出关","取行李","约1小时"]
+        },
+        {
+          label:"前往市区", time:"10:45",
+          detail:{
+            eyebrow:"Day 1 · 10:45",
+            title:"Aerobús 机场大巴",
+            meta:"终点：加泰罗尼亚广场 · 约35分钟",
+            sections:[
+              {h:"推荐", p:"乘坐 Aerobús 机场大巴，终点站为加泰罗尼亚广场（Plaça de Catalunya），是市中心的交通枢纽，方便接驳地铁。"}
+            ]
+          },
+          children:["Aerobús","→ 加泰罗尼亚广场","约35分钟"]
+        },
+        {
+          label:"酒店入住 + 午餐", time:"12:00–13:30",
+          detail:{
+            eyebrow:"Day 1 · 12:00–13:30",
+            title:"Vinitus",
+            meta:"正宗 Tapas 文化体验",
+            sections:[
+              {h:"必点", must:"Garlic Shrimp 蒜香虾 · Honey Cod 蜂蜜鳕鱼 · Razor Clams 竹蛏"},
+              {h:"体验", p:"Vinitus 是当地人也会去的 Tapas 酒馆，氛围热闹，食材新鲜，是体验正宗 Tapas 文化的好去处。"}
+            ]
+          },
+          children:["Vinitus","Garlic Shrimp","Honey Cod","Razor Clams"]
+        },
+        {
+          label:"哥特区 City Walk", time:"14:00–18:00",
+          detail:{
+            eyebrow:"Day 1 · 14:00–18:00",
+            title:"哥特区 Gothic Quarter",
+            meta:"巴塞罗那最有灵魂的区域",
+            sections:[
+              {h:"推荐路线", route:["加泰罗尼亚广场","兰布拉大道","波盖利亚市场（快速参观）","皇家广场","Kiss Wall","叹息桥","巴塞罗那主教堂","圣卡特琳娜市场"]},
+              {h:"看什么", list:["中世纪石板路","教堂钟声","老城区小巷","欧洲电影感"]},
+              {h:"点评", tip:"这是巴塞罗那最有灵魂的区域，适合漫无目的地走，迷路也是一种体验。"}
+            ]
+          },
+          children:["加泰罗尼亚广场","兰布拉大道","波盖利亚市场","皇家广场","Kiss Wall","叹息桥","主教堂","圣卡特琳娜市场"]
+        },
+        {
+          label:"Joncake 巴斯克蛋糕", time:"18:00",
+          detail:{
+            eyebrow:"Day 1 · 18:00",
+            title:"Joncake",
+            meta:"巴斯克芝士蛋糕",
+            sections:[
+              {h:"推荐口味", must:"Original 原味 · Brie Cheese 布里芝士"},
+              {h:"提示", p:"Joncake 是巴塞罗那网红巴斯克蛋糕店，外焦内嫩，建议买来当下午茶或第二天早餐。"}
+            ]
+          },
+          children:["Original","Brie Cheese"]
+        },
+        {
+          label:"Hotel Colon Rooftop 日落", time:"19:00–20:30",
+          detail:{
+            eyebrow:"Day 1 · 19:00–20:30",
+            title:"Hotel Colon Rooftop",
+            meta:"大教堂日落 · 拍照出片",
+            sections:[
+              {h:"体验", p:"Hotel Colon 顶楼露台正对巴塞罗那主教堂，傍晚时分光线柔和，主教堂钟楼与金色天空同框，是 Day 1 最出片的机位之一。"},
+              {h:"建议", tip:"提前到露台占位，点一杯饮品慢慢等日落。"}
+            ]
+          },
+          children:["大教堂日落","拍照出片"]
+        },
+        {
+          label:"晚餐 Bar del Pla", time:"20:30",
+          detail:{
+            eyebrow:"Day 1 · 20:30",
+            title:"Bar del Pla",
+            meta:"哥特区晚餐",
+            sections:[
+              {h:"推荐", p:"Bar del Pla 是哥特区一家氛围温馨的小酒馆，tapas 与主菜都靠谱，适合第一天收尾。"}
+            ]
+          },
+          children:["哥特区晚餐"]
+        }
+      ]
+    },
+    {
+      id:"d2", c:"d2", label:"Day 2 · 高迪与现代主义建筑日", date:"7月10日 周五",
+      children:[
+        {
+          label:"酒店出发", time:"08:00",
+          detail:{
+            eyebrow:"Day 2 · 08:00",
+            title:"打车前往 Park Güell",
+            meta:"早出发避开人流",
+            sections:[{h:"提示", tip:"奎尔公园早上人少光线好，建议打车直达高处入口。"}]
+          },
+          children:["打车前往奎尔公园"]
+        },
+        {
+          label:"奎尔公园", time:"08:30–10:30",
+          detail:{
+            eyebrow:"Day 2 · 08:30–10:30",
+            title:"Park Güell 奎尔公园",
+            meta:"高迪的童话花园",
+            sections:[
+              {h:"重点", list:["马赛克蜥蜴 Salamander","百柱厅 Sala Hipòstila","观景平台（俯瞰市区与地中海）"]},
+              {h:"游览建议", must:"从高处入口进入，一路向下走，省体力且动线顺畅。"}
+            ]
+          },
+          children:["马赛克蜥蜴","百柱厅","观景平台","从高向低走"]
+        },
+        {
+          label:"巴特罗之家", time:"11:00–13:00",
+          detail:{
+            eyebrow:"Day 2 · 11:00–13:00",
+            title:"Casa Batlló 巴特罗之家",
+            meta:"高迪 · 海洋主题杰作",
+            sections:[
+              {h:"票种", must:"推荐购买 Gold Ticket，含 AR 讲解与屋顶体验。"},
+              {h:"体验亮点", list:["AR 沉浸式讲解","龙骨屋顶","海洋主题室内空间","彩色玻璃中庭"]}
+            ]
+          },
+          children:["Gold Ticket","AR讲解","龙骨屋顶","海洋主题"]
+        },
+        {
+          label:"午餐", time:"13:00–14:30",
+          detail:{
+            eyebrow:"Day 2 · 13:00–14:30",
+            title:"Cerveseria Catalana",
+            meta:"加泰罗尼亚啤酒屋",
+            sections:[{h:"推荐", p:"Cerveseria Catalana 是本地人气 tapas 酒馆，海鲜与冷盘都出色，建议错峰或提前到。"}]
+          },
+          children:["Cerveseria Catalana"]
+        },
+        {
+          label:"感恩大道购物", time:"14:30–17:00",
+          detail:{
+            eyebrow:"Day 2 · 14:30–17:00",
+            title:"Passeig de Gràcia 感恩大道",
+            meta:"购物 + 伴手礼采购",
+            sections:[
+              {h:"推荐伴手礼", list:[
+                "Chocolate Amatller 巧克力",
+                "Torrons Vicens 牛轧糖",
+                "花砖杯垫 / 花砖冰箱贴 / 花砖帆布袋"
+              ]}
+            ]
+          },
+          children:["Chocolate Amatller","Torrons Vicens","花砖系列"]
+        },
+        {
+          label:"音乐宫", time:"17:30–19:00",
+          detail:{
+            eyebrow:"Day 2 · 17:30–19:00",
+            title:"Palau de la Música Catalana",
+            meta:"加泰罗尼亚现代主义巅峰",
+            sections:[
+              {h:"亮点", list:["彩色玻璃穹顶","世界遗产建筑","加泰罗尼亚现代主义巅峰"]},
+              {h:"提示", p:"音乐宫是现代主义建筑的瑰宝，彩窗穹顶让自然光洒满音乐厅，建议跟导览团进入。"}
+            ]
+          },
+          children:["彩色玻璃穹顶","世界遗产","现代主义巅峰"]
+        },
+        {
+          label:"焦糖山日落", time:"20:00–21:30",
+          detail:{
+            eyebrow:"Day 2 · 20:00–21:30",
+            title:"Bunkers del Carmel 焦糖山",
+            meta:"360° 城市全景日落",
+            sections:[
+              {h:"交通", p:"19:15 从音乐宫 Bolt 打车前往，约20分钟。"},
+              {h:"俯瞰", list:["圣家堂","巴塞罗那市区","地中海"]},
+              {h:"建议", tip:"带饮料和小零食，坐在废弃防空掩体上看整座城市慢慢亮灯，是全程最浪漫的时刻之一。"}
+            ]
+          },
+          children:["俯瞰圣家堂","市区全景","地中海","带饮料零食"]
+        }
+      ]
+    }
+  ],
+  right: [
+    {
+      id:"d3", c:"d3", label:"Day 3 · 圣家堂与欧洲街区生活", date:"7月11日 周六",
+      children:[
+        {
+          label:"圣保罗医院", time:"09:00–10:30",
+          detail:{
+            eyebrow:"Day 3 · 09:00–10:30",
+            title:"Recinte Modernista de Sant Pau",
+            meta:"高迪同代 · 多梅内克·蒙塔内尔",
+            sections:[
+              {h:"亮点", list:["彩色马赛克穹顶","花园庭院","人少好拍"]},
+              {h:"点评", tip:"圣保罗医院是被低估的现代主义瑰宝，游客远少于圣家堂，色彩与庭院非常适合摄影。"}
+            ]
+          },
+          children:["彩色马赛克","花园庭院","人少好拍"]
+        },
+        {
+          label:"步行前往圣家堂", time:"10:30",
+          detail:{
+            eyebrow:"Day 3 · 10:30",
+            title:"沿 Avinguda de Gaudí 散步",
+            meta:"约10分钟",
+            sections:[{h:"路线", p:"从圣保罗医院沿 Avinguda de Gaudí 步行至圣家堂，这条林荫道正对圣家堂，是经典取景角度。"}]
+          },
+          children:["Avinguda de Gaudí","约10分钟"]
+        },
+        {
+          label:"圣家堂", time:"11:00–13:30",
+          detail:{
+            eyebrow:"Day 3 · 11:00–13:30",
+            title:"Sagrada Família 圣家堂",
+            meta:"整个旅程最震撼的部分",
+            sections:[
+              {h:"最佳拍照点", must:"高迪广场水池 — 圣家堂倒影机位。"},
+              {h:"体验", p:"11:00 时段阳光穿过诞生面彩窗，把中殿染成彩色森林，这是整个旅程最震撼的瞬间。"},
+              {h:"建议", tip:"预约 11:00 时段正是为了这束光，不要迟到。"}
+            ]
+          },
+          children:["彩色光影","高迪广场倒影","最震撼"]
+        },
+        {
+          label:"午餐", time:"13:30–15:00",
+          detail:{
+            eyebrow:"Day 3 · 13:30–15:00",
+            title:"Avinguda de Gaudí 街边露台",
+            meta:"氛围 > 网红",
+            sections:[{h:"建议", tip:"随便选评分高的露台餐厅即可，氛围比网红店重要。坐在街边看圣家堂吃午餐。"}]
+          },
+          children:["街边露台","氛围优先"]
+        },
+        {
+          label:"格拉西亚街区漫步", time:"15:30–19:00",
+          detail:{
+            eyebrow:"Day 3 · 15:30–19:00",
+            title:"Gràcia 格拉西亚街区",
+            meta:"最符合你们喜好的部分",
+            sections:[
+              {h:"看什么", list:["欧洲小广场","咖啡馆","独立书店","手工艺店","当地设计品牌"]},
+              {h:"点评", must:"不像景点，更像生活。这是整条路线最贴近你们旅行偏好的部分。"},
+              {h:"推荐伴手礼店", list:["Flor de Barcelona 花砖系列","OMG BCN 设计师选物店","YUMILAB 冰箱贴"]}
+            ]
+          },
+          children:["欧洲小广场","咖啡馆","独立书店","手工艺店","Flor de Barcelona","OMG BCN","YUMILAB"]
+        },
+        {
+          label:"晚上自由活动", time:"夜间",
+          detail:{
+            eyebrow:"Day 3 · 夜间",
+            title:"自由活动",
+            meta:"哥特区 or 海边",
+            sections:[{h:"推荐", list:["回哥特区吃饭","海边散步"]}]
+          },
+          children:["哥特区吃饭","海边散步"]
+        }
+      ]
+    },
+    {
+      id:"d4", c:"d4", label:"Day 4 · 蒙锥克山与地中海告别", date:"7月12日 周日",
+      children:[
+        {
+          label:"前往 Montjuïc", time:"09:00",
+          detail:{
+            eyebrow:"Day 4 · 09:00",
+            title:"打车前往蒙锥克山",
+            meta:"打车最方便",
+            sections:[{h:"提示", p:"蒙锥克山打车直达缆车站最省时间。"}]
+          },
+          children:["打车直达"]
+        },
+        {
+          label:"Montjuïc 半日游", time:"09:30–13:00",
+          detail:{
+            eyebrow:"Day 4 · 09:30–13:00",
+            title:"Montjuïc 蒙锥克山",
+            meta:"巴塞罗那的另一面",
+            sections:[
+              {h:"推荐路线", route:["缆车 Teleferic","城堡 Castell de Montjuïc","观景平台","花园 Jardins","海港方向步行"]},
+              {h:"为什么推荐这里", list:["相比 Tibidabo 游客少","海港视角更好","更有欧洲生活感","摄影题材丰富"]}
+            ]
+          },
+          children:["缆车","城堡","观景平台","花园","海港步行"]
+        },
+        {
+          label:"海边午餐", time:"13:00–14:30",
+          detail:{
+            eyebrow:"Day 4 · 13:00–14:30",
+            title:"海港附近餐厅",
+            meta:"最后一顿地中海午餐",
+            sections:[{h:"体验", p:"在海港附近选一家餐厅，享受最后一顿地中海午餐，为旅程收尾。"}]
+          },
+          children:["海港餐厅","地中海午餐"]
+        },
+        {
+          label:"返程 / 自由活动", time:"15:00后",
+          detail:{
+            eyebrow:"Day 4 · 15:00后",
+            title:"返程安排",
+            meta:"12日晚离开 / 13日早离开",
+            sections:[
+              {h:"如果 12 日晚离开", route:["回酒店取行李","Aerobús 前往机场"]},
+              {h:"如果 13 日早离开 · Option A", p:"哥特区最后漫步"},
+              {h:"Option B", p:"感恩大道购物补货"},
+              {h:"Option C", p:"巴塞罗内塔海边喝咖啡看日落"}
+            ]
+          },
+          children:["12日晚: Aerobús","Option A 哥特区","Option B 感恩大道","Option C 海边日落"]
+        }
+      ]
+    },
+    {
+      id:"gift", c:"gift", label:"🎁 推荐伴手礼清单",
+      children:[
+        {label:"Chocolate Amatller", time:"巧克力", detail:{eyebrow:"伴手礼",title:"Chocolate Amatller",meta:"百年巧克力品牌",sections:[{h:"介绍",p:"包装复刻 19 世纪广告画，是巴塞罗那最具设计感的巧克力伴手礼。"}]},children:["包装复古","送礼佳品"]},
+        {label:"Torrons Vicens", time:"牛轧糖", detail:{eyebrow:"伴手礼",title:"Torrons Vicens",meta:"加泰罗尼亚牛轧糖",sections:[{h:"介绍",p:"Agramont 的百年牛轧糖世家，口味丰富，是圣诞之外也能买到的当地甜点。"}]},children:["百年世家","口味丰富"]},
+        {label:"Flor de Barcelona", time:"花砖系列", detail:{eyebrow:"伴手礼",title:"Flor de Barcelona",meta:"花砖周边",sections:[{h:"产品",list:["花砖杯垫","花砖冰箱贴","花砖帆布袋"]}]},children:["杯垫","冰箱贴","帆布袋"]},
+        {label:"OMG BCN", time:"设计师选物", detail:{eyebrow:"伴手礼",title:"OMG BCN",meta:"设计师选物店",sections:[{h:"介绍",p:"本地设计师选物店，集合加泰罗尼亚独立设计品牌。"}]},children:["独立设计"]},
+        {label:"YUMILAB", time:"冰箱贴", detail:{eyebrow:"伴手礼",title:"YUMILAB",meta:"创意冰箱贴",sections:[{h:"介绍",p:"设计感冰箱贴，比游客纪念品店精致很多。"}]},children:["设计感"]},
+        {label:"Joncake", time:"巴斯克蛋糕", detail:{eyebrow:"伴手礼",title:"Joncake",meta:"巴斯克芝士蛋糕",sections:[{h:"推荐",must:"Original 原味 · Brie Cheese 布里芝士"},{h:"提示",p:"当天食用最佳，也可作为回程手信。"}]},children:["Original","Brie Cheese"]}
+      ]
+    },
+    {
+      id:"mem", c:"mem", label:"💫 最值得留下的5个记忆",
+      children:[
+        {label:"圣家堂彩色光影", time:"心动", detail:{eyebrow:"心动记忆 · 1",title:"圣家堂里彩色光影洒满教堂",meta:"Day 3 · 11:00",sections:[{h:"瞬间",p:"阳光穿过诞生面彩窗，把中殿染成彩色森林，这是整趟旅程最震撼的画面。"}]},children:["彩色森林中殿"]},
+        {label:"焦糖山城市亮灯", time:"心动", detail:{eyebrow:"心动记忆 · 2",title:"焦糖山看整座城市慢慢亮灯",meta:"Day 2 · 日落",sections:[{h:"瞬间",p:"坐在废弃防空掩体上，看圣家堂、市区、地中海在暮色中渐次亮灯。"}]},children:["暮色亮灯"]},
+        {label:"格拉西亚广场生活", time:"心动", detail:{eyebrow:"心动记忆 · 3",title:"格拉西亚街区看当地人聊天喝咖啡",meta:"Day 3 · 下午",sections:[{h:"瞬间",p:"在小广场的咖啡馆坐下，看当地老人下棋、孩子奔跑，这才是欧洲生活。"}]},children:["广场生活"]},
+        {label:"哥特区迷路", time:"心动", detail:{eyebrow:"心动记忆 · 4",title:"在哥特区迷路",meta:"Day 1 · 下午",sections:[{h:"瞬间",p:"中世纪石板路、教堂钟声、转角的小店，迷路本身就是一种体验。"}]},children:["中世纪小巷"]},
+        {label:"地中海边结束一天", time:"心动", detail:{eyebrow:"心动记忆 · 5",title:"在地中海边结束一天",meta:"Day 3/4 · 黄昏",sections:[{h:"瞬间",p:"巴塞罗内塔海滩的黄昏，海风、沙滩、晚霞，为一天画上句号。"}]},children:["海滩黄昏"]},
+        {label:"预算参考", time:"人均", detail:{eyebrow:"预算 · 不含机酒",title:"人均预算参考",meta:"€190–430+",sections:[{h:"明细",list:["景点门票 €80–120","交通 €20–40","餐饮 €40–70/天","伴手礼 €50–200+"]}]},children:["门票€80-120","交通€20-40","餐饮€40-70/天","伴手礼€50-200+"]}
+      ]
+    }
+  ]
+};
+
+/* ═══════════════ RENDER ═══════════════ */
+const tree = document.getElementById('tree');
+const canvas = document.getElementById('canvas');
+
+function makeNode(opts){
+  const n = document.createElement('div');
+  n.className = 'node ' + (opts.cls||'');
+  if(opts.c) n.dataset.c = opts.c;
+  if(opts.collapsed) n.classList.add('collapsed');
+  let html = '';
+  if(opts.chev) html += `<span class="chev">▼</span>`;
+  if(opts.time) html += `<span class="time">${opts.time}</span>`;
+  html += `<span class="label">${opts.label}</span>`;
+  if(opts.badge) html += `<span class="badge">${opts.badge}</span>`;
+  if(opts.sub) html += `<span class="sub">${opts.sub}</span>`;
+  n.innerHTML = html;
+  if(opts.onClick) n.addEventListener('click', e=>{ e.stopPropagation(); opts.onClick(n); });
+  return n;
+}
+
+function makeChildren(items, side, depth){
+  const wrap = document.createElement('div');
+  // depth 1 = first level under L1 branch → .children (holds L2 nodes)
+  // depth 2 = under L2 node → .sub-children (holds L3 leaves)
+  wrap.className = depth===1 ? 'children' : 'sub-children';
+  items.forEach(item=>{
+    if(typeof item === 'string'){
+      const leaf = makeNode({cls:'l3', label:item, chev:false});
+      wrap.appendChild(leaf);
+    } else {
+      const hasKids = item.children && item.children.length;
+      const node = makeNode({
+        cls: depth===1 ? 'l2' : 'l3',
+        label: item.label,
+        time: item.time,
+        chev: hasKids,
+        collapsed: true,
+        onClick: (el)=>{
+          if(item.detail){ openPanel(item.detail); }
+          if(hasKids){
+            el.classList.toggle('collapsed');
+            const sub = el.parentElement.querySelector(':scope > .sub-children');
+            if(sub) sub.style.display = el.classList.contains('collapsed') ? 'none' : 'flex';
+            setTimeout(drawLines, 50);
+          }
+        }
+      });
+      if(hasKids){
+        // group node + its sub-children together in a row
+        const group = document.createElement('div');
+        group.className = 'node-group';
+        group.appendChild(node);
+        const sub = makeChildren(item.children, side, depth+1);
+        // sync initial display with collapsed state
+        if(node.classList.contains('collapsed')) sub.style.display = 'none';
+        group.appendChild(sub);
+        wrap.appendChild(group);
+      } else {
+        wrap.appendChild(node);
+      }
+    }
+  });
+  return wrap;
+}
+
+function makeBranch(branch, side){
+  const b = document.createElement('div');
+  b.className = 'branch ' + side;
+  const node = makeNode({
+    cls:'l1', c:branch.c, label:branch.label, badge:branch.date, chev:true,
+    onClick:(el)=>{
+      el.classList.toggle('collapsed');
+      const ch = el.parentElement.querySelector(':scope > .children');
+      if(ch) ch.style.display = el.classList.contains('collapsed') ? 'none' : 'flex';
+      setTimeout(drawLines, 50);
+    }
+  });
+  b.appendChild(node);
+  if(branch.children){
+    const ch = makeChildren(branch.children, side, 1);
+    b.appendChild(ch);
+  }
+  return b;
+}
+
+function render(){
+  tree.innerHTML = '';
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.classList.add('connectors');
+  tree.appendChild(svg);
+
+  const rootWrap = document.createElement('div');
+  rootWrap.className = 'root-wrap';
+  const rootCol = document.createElement('div');
+  rootCol.className = 'root-col';
+
+  const rootNode = makeNode({
+    cls:'root', label:DATA.root.label, sub:DATA.root.sub, chev:false
+  });
+  rootCol.appendChild(rootNode);
+
+  const sides = document.createElement('div');
+  sides.className = 'sides';
+  const leftSide = document.createElement('div');
+  leftSide.className = 'side';
+  const rightSide = document.createElement('div');
+  rightSide.className = 'side';
+
+  DATA.left.forEach(b=>leftSide.appendChild(makeBranch(b,'left')));
+  DATA.right.forEach(b=>rightSide.appendChild(makeBranch(b,'right')));
+
+  sides.appendChild(leftSide);
+  sides.appendChild(rightSide);
+  rootCol.appendChild(sides);
+  rootWrap.appendChild(rootCol);
+  tree.appendChild(rootWrap);
+
+  setTimeout(drawLines, 100);
+}
+
+/* ═══════════════ CONNECTORS ═══════════════ */
+function drawLines(){
+  const svg = tree.querySelector('svg.connectors');
+  if(!svg) return;
+  svg.innerHTML = '';
+  const tRect = tree.getBoundingClientRect();
+  svg.setAttribute('width', tRect.width);
+  svg.setAttribute('height', tRect.height);
+
+  function rel(el){
+    const r = el.getBoundingClientRect();
+    return {
+      cx: r.left - tRect.left + r.width/2,
+      cy: r.top - tRect.top + r.height/2,
+      left: r.left - tRect.left,
+      right: r.right - tRect.left,
+      top: r.top - tRect.top,
+      bottom: r.bottom - tRect.top
+    };
+  }
+
+  function line(x1,y1,x2,y2,color,w){
+    const l = document.createElementNS('http://www.w3.org/2000/svg','path');
+    const mx = (x1+x2)/2;
+    const d = `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`;
+    l.setAttribute('d', d);
+    l.setAttribute('stroke', color);
+    l.setAttribute('stroke-width', w);
+    l.setAttribute('fill','none');
+    l.setAttribute('stroke-linecap','round');
+    svg.appendChild(l);
+  }
+
+  const colors = {
+    prep:'#fb7185', d1:'#38bdf8', d2:'#fbbf24', d3:'#a78bfa', d4:'#34d399',
+    gift:'#f97316', mem:'#f472b6'
+  };
+
+  // root → l1
+  const root = tree.querySelector('.node.root');
+  const rootR = rel(root);
+
+  document.querySelectorAll('.side').forEach(side=>{
+    const isLeft = side.classList.contains('side') && side.parentElement.parentElement.querySelector('.side:first-child') === side;
+    // determine side by position
+  });
+
+  // left branches: root.left → branch.right
+  document.querySelectorAll('.sides > .side:first-child .branch').forEach(branch=>{
+    const l1 = branch.querySelector(':scope > .node.l1');
+    if(!l1) return;
+    const l1r = rel(l1);
+    const color = colors[l1.dataset.c] || '#94a3b8';
+    line(rootR.left, rootR.cy, l1r.right, l1r.cy, color, 2.5);
+    drawBranchChildren(l1, 'left', color);
+  });
+  // right branches: root.right → branch.left
+  document.querySelectorAll('.sides > .side:last-child .branch').forEach(branch=>{
+    const l1 = branch.querySelector(':scope > .node.l1');
+    if(!l1) return;
+    const l1r = rel(l1);
+    const color = colors[l1.dataset.c] || '#94a3b8';
+    line(rootR.right, rootR.cy, l1r.left, l1r.cy, color, 2.5);
+    drawBranchChildren(l1, 'right', color);
+  });
+}
+
+function drawBranchChildren(l1Node, side, color){
+  const tRect = tree.getBoundingClientRect();
+  const l1r = (function(){
+    const r = l1Node.getBoundingClientRect();
+    return {cx:r.left-tRect.left+r.width/2, cy:r.top-tRect.top+r.height/2, left:r.left-tRect.left, right:r.right-tRect.left};
+  })();
+  const svg = tree.querySelector('svg.connectors');
+
+  // find direct children container (sibling of l1 node within branch)
+  const childrenWrap = l1Node.parentElement.querySelector(':scope > .children');
+  if(!childrenWrap || childrenWrap.style.display==='none') return;
+
+  // L2 nodes may be direct children of .children, or inside .node-group
+  const childNodes = [];
+  Array.from(childrenWrap.children).forEach(child=>{
+    if(child.classList && child.classList.contains('node') && child.classList.contains('l2')){
+      childNodes.push(child);
+    } else if(child.classList && child.classList.contains('node-group')){
+      const l2 = child.querySelector(':scope > .node.l2');
+      if(l2) childNodes.push(l2);
+    }
+  });
+
+  childNodes.forEach(ch=>{
+    const r = ch.getBoundingClientRect();
+    const cr = {cx:r.left-tRect.left+r.width/2, cy:r.top-tRect.top+r.height/2, left:r.left-tRect.left, right:r.right-tRect.left};
+    const x1 = side==='left' ? l1r.left : l1r.right;
+    const x2 = side==='left' ? cr.right : cr.left;
+    const l = document.createElementNS('http://www.w3.org/2000/svg','path');
+    const mx = (x1+x2)/2;
+    l.setAttribute('d', `M ${x1} ${l1r.cy} C ${mx} ${l1r.cy}, ${mx} ${cr.cy}, ${x2} ${cr.cy}`);
+    l.setAttribute('stroke','#94a3b8'); l.setAttribute('stroke-width',2);
+    l.setAttribute('fill','none'); l.setAttribute('stroke-linecap','round');
+    svg.appendChild(l);
+
+    // sub children: look in the same node-group
+    const group = ch.parentElement;
+    const subWrap = group.classList && group.classList.contains('node-group')
+      ? group.querySelector(':scope > .sub-children')
+      : ch.parentElement.querySelector(':scope > .sub-children');
+    if(subWrap && subWrap.style.display!=='none'){
+      const subs = subWrap.querySelectorAll(':scope > .node.l3');
+      subs.forEach(s=>{
+        const sr = s.getBoundingClientRect();
+        const scr = {cy:sr.top-tRect.top+sr.height/2, left:sr.left-tRect.left, right:sr.right-tRect.left};
+        const sx1 = side==='left' ? cr.left : cr.right;
+        const sx2 = side==='left' ? scr.right : scr.left;
+        const sl = document.createElementNS('http://www.w3.org/2000/svg','path');
+        const smx = (sx1+sx2)/2;
+        sl.setAttribute('d', `M ${sx1} ${cr.cy} C ${smx} ${cr.cy}, ${smx} ${scr.cy}, ${sx2} ${scr.cy}`);
+        sl.setAttribute('stroke','#a8b4c2'); sl.setAttribute('stroke-width',1.5);
+        sl.setAttribute('fill','none'); sl.setAttribute('stroke-linecap','round');
+        svg.appendChild(sl);
+      });
+    }
+  });
+}
+
+/* ═══════════════ PANEL ═══════════════ */
+const overlay = document.getElementById('overlay');
+const panel = document.getElementById('panel');
+const pEyebrow = document.getElementById('pEyebrow');
+const pTitle = document.getElementById('pTitle');
+const pMeta = document.getElementById('pMeta');
+const pBody = document.getElementById('pBody');
+
+function openPanel(d){
+  pEyebrow.textContent = d.eyebrow || '';
+  pTitle.textContent = d.title || '';
+  pMeta.textContent = d.meta || '';
+  let html = '';
+  (d.sections||[]).forEach(s=>{
+    if(s.h) html += `<h4>${s.h}</h4>`;
+    if(s.p) html += `<p>${s.p}</p>`;
+    if(s.list) html += `<ul>${s.list.map(i=>`<li>${i}</li>`).join('')}</ul>`;
+    if(s.route) html += `<div class="route">${s.route.map((step,i)=>`<div class="route-step">${i>0?'<span class="route-arrow">↓</span>':''}<span>${step}</span></div>`).join('')}</div>`;
+    if(s.tip) html += `<div class="tip">💡 ${s.tip}</div>`;
+    if(s.must) html += `<div class="must">⭐ ${s.must}</div>`;
+  });
+  pBody.innerHTML = html;
+  overlay.classList.add('show');
+  panel.classList.add('show');
+}
+function closePanel(){
+  overlay.classList.remove('show');
+  panel.classList.remove('show');
+}
+document.getElementById('closePanel').addEventListener('click', closePanel);
+overlay.addEventListener('click', closePanel);
+
+/* ═══════════════ CONTROLS ═══════════════ */
+document.getElementById('expandAll').addEventListener('click', ()=>{
+  document.querySelectorAll('.node.collapsed').forEach(n=>n.classList.remove('collapsed'));
+  document.querySelectorAll('.children, .sub-children').forEach(c=>c.style.display='flex');
+  setTimeout(drawLines, 50);
+});
+document.getElementById('collapseAll').addEventListener('click', ()=>{
+  document.querySelectorAll('.node.l1, .node.l2').forEach(n=>{
+    if(n.querySelector('.chev')) n.classList.add('collapsed');
+  });
+  document.querySelectorAll('.sub-children').forEach(c=>c.style.display='none');
+  setTimeout(drawLines, 50);
+});
+document.getElementById('resetView').addEventListener('click', ()=>{
+  document.querySelectorAll('.node.collapsed').forEach(n=>n.classList.remove('collapsed'));
+  document.querySelectorAll('.children, .sub-children').forEach(c=>c.style.display='flex');
+  canvas.scrollTo({left:0, top:0, behavior:'smooth'});
+  closePanel();
+  setTimeout(drawLines, 50);
+});
+
+window.addEventListener('resize', ()=>setTimeout(drawLines, 100));
+
+render();
+</script>
+</body>
+</html>
